@@ -10,8 +10,11 @@ export default class UserRepository extends BaseRepository<UserDocument>{
     constructor(@InjectModel(User.name)   model: Model<UserDocument>) {
         super(model);
     }
-    findUserWithoutPassword(user: any){
-        return this.model.findOne(user, { 'password': false, '__v': false })
+    async findUserWithoutPassword(user: any){
+        return await this.model.findOne(user, { 'password': false, '__v': false })
+    }
+   async findAllLikely(query: any){
+    	return await this.model.find({username: new RegExp(query?.username, "i") }).select({username: 1, _id:0});
     }
   }
   

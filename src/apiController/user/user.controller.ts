@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthService } from '../auth/auth.service';
@@ -17,6 +17,11 @@ export class UserController {
     let token = auth.replace('Bearer ','');
     const user: UserDecodeToken = await this.authService.decodedToken(token);
     return await this.userService.getUserYourSelf(user.username);
+  }
+
+   @Get('/find-user')
+  async findUser(@Req() req: Request, @Query()query: string) {
+   return  await this.userService.findUser(query);
   }
 
 }

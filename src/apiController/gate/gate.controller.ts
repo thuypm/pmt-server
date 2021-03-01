@@ -24,12 +24,23 @@ export class GateController {
       else
         throw new HttpException({
           status: HttpStatus.BAD_REQUEST,
-          message: 'Sai tên đăng nhập hoặc mật khẩu',
+          errors: [
+          {
+            label: 'Lỗi',
+            content: 'Sai tên đăng nhập hoặc mật khẩu'
+          }
+          ],
         }, HttpStatus.BAD_REQUEST)
     }
+    else
     throw new HttpException({
       status: HttpStatus.BAD_REQUEST,
-      message: 'Sai tên đăng nhập hoặc mật khẩu',
+      errors: [
+          {
+            label: 'Lỗi',
+            content: 'Sai tên đăng nhập hoặc mật khẩu'
+          }
+          ],
     }, HttpStatus.BAD_REQUEST)
   }
 
@@ -37,10 +48,15 @@ export class GateController {
   async signup(@Body() user: CreateUserDto) {
     let result = await this.gateService.getUserByUsername(user.username);
     if (result)
-      throw new HttpException({
-        status: HttpStatus.BAD_REQUEST,
-        message: 'Người dùng đã tồn tại',
-      }, HttpStatus.BAD_REQUEST)
+       throw new HttpException({
+      status: HttpStatus.BAD_REQUEST,
+      errors: [
+          {
+            label: 'Lỗi',
+            content: 'Người dùng đã tồn tại'
+          }
+          ],
+    }, HttpStatus.BAD_REQUEST)
     else {
       let userDto: CreateUserDto = new CreateUserDto();
       userDto.username = user.username;

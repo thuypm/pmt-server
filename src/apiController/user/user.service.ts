@@ -16,4 +16,8 @@ export class UserService {
     user._id = Types.ObjectId();
     return await this.userRepo.create(user);
   }
+  async findUser(query: any) {
+    return await this.userRepo.findAllLikely(query);
+
+  }
 }
