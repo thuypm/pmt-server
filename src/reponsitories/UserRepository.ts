@@ -14,7 +14,7 @@ export default class UserRepository extends BaseRepository<UserDocument>{
         return await this.model.findOne(user, { 'password': false, '__v': false })
     }
    async findAllLikely(query: any){
-    	return await this.model.find({username: new RegExp(query?.username, "i") }).select({username: 1, _id:0});
+    	return await this.model.find({username: new RegExp(query?.username, "i") }).select({username: 1, _id:1}).limit(10);
     }
   }
   

@@ -16,7 +16,8 @@ export default class BaseRepository<D extends BaseDocument>{
     }
     return await this.model.create(createData);
   }
-  async update({ data, option }) {
+  
+  async update( data :any , option:any ) {
     return await this.model.updateOne(option, data);
   }
 

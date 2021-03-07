@@ -20,8 +20,12 @@ export class UserController {
   }
 
    @Get('/find-user')
-  async findUser(@Req() req: Request, @Query()query: string) {
-   return  await this.userService.findUser(query);
+  async findUser(@Req() req: Request,@Headers('authorization') auth: string, @Query()query: string) {
+  	let token = auth.replace('Bearer ','');
+    const user: UserDecodeToken = await this.authService.decodedToken(token);
+   const listResult = await this.userService.findUser(query);
+   let resp = listResult.filter(e=> e.username !== user.username);
+   return resp
   }
 
 }

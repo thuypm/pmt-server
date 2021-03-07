@@ -18,6 +18,5 @@ export class UserService {
   }
   async findUser(query: any) {
     return await this.userRepo.findAllLikely(query);
-
   }
 }

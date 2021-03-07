@@ -15,7 +15,31 @@ export class GroupController {
 
   @Post()
   async createGroup(@Body() group: CreateGroupDto, @Headers('authorization') auth: string) {
-    return await this.groupService.createGroup(group);
+    let token = auth.replace('Bearer ', '');
+    const owner: UserDecodeToken = await this.authService.decodedToken(token);
+    group.owner = {
+      username: owner.username,
+      _id: owner._id
+    };
+    let createG: CreateGroupDto = {
+      _id: "",
+      members: group?.members?.map(e => {
+        return {
+          _id: e._id,
+          username: e.username
+        }
+      }),
+      name: group.name,
+      description: group.description,
+      listPost: [],
+      listMessage: [],
+      owner: {
+        username: owner.username,
+        _id: owner._id
+      }
+    }
+    await this.groupService.createGroup(createG);
+    return {}
   }
 
 }
