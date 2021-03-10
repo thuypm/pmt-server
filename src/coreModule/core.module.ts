@@ -1,7 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { AuthModule } from 'src/apiController/auth/auth.module';
 import { AuthService } from 'src/apiController/auth/auth.service';
+import UserRepository from 'src/reponsitories/UserRepository';
+import { NotificationGateway } from 'src/socket/Notification';
 
 @Global()
 @Module({
@@ -13,7 +14,7 @@ import { AuthService } from 'src/apiController/auth/auth.service';
       })
     }),
   ],
-  providers:[],
-  exports: [JwtModule]
+  providers: [AuthService, NotificationGateway],
+  exports: [JwtModule, NotificationGateway]
 })
 export class CoreModule { }

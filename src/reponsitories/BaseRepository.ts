@@ -10,15 +10,11 @@ export default class BaseRepository<D extends BaseDocument>{
     this.model = model;
   }
   async create(data: any) {
-    let createData = {
-      ...data,
-      _id: Types.ObjectId()
-    }
-    return await this.model.create(createData);
+    return await this.model.create(data);
   }
   
   async update( data :any , option:any ) {
-    return await this.model.updateOne(option, data);
+    return await this.model.updateOne(data, option);
   }
 
   async delete(option) {

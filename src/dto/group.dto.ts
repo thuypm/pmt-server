@@ -6,8 +6,7 @@ import {UserDecodeToken} from './user.dto'
 
 
 export class Group {
-
-    _id:  string | Types.ObjectId
+    _id:  string | Types.ObjectId;
     password: string
     name: string
     members: Array<UserDecodeToken>;

@@ -11,6 +11,10 @@ export type GroupDocument = Group & Document;
 @Schema()
 export class Group extends BaseModel {
     @Prop()
+    name:string
+    @Prop()
+    description:string
+    @Prop()
     members:Array<UserDecodeToken>
     @Prop()
     owner: UserDecodeToken

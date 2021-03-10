@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Param } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthService } from '../auth/auth.service';
@@ -12,7 +12,16 @@ export class GroupController {
   constructor(private readonly groupService: GroupService, private readonly authService: AuthService) {
 
   }
-
+  @Get()
+  async getAllGroup( @Headers('authorization') auth: string) {
+    let token = auth.replace('Bearer ', '');
+    const user: UserDecodeToken = await this.authService.decodedToken(token);
+    return await this.groupService.getAllGroup(user);
+  }
+  @Get(':id')
+  async getOneGroup(@Param() param: any, @Headers('authorization') auth: string) {
+    return await this.groupService.getOneGroup(param?.id);
+  }
   @Post()
   async createGroup(@Body() group: CreateGroupDto, @Headers('authorization') auth: string) {
     let token = auth.replace('Bearer ', '');

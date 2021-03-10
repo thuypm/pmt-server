@@ -7,7 +7,6 @@ import { GateModule } from './apiController/gate/gate.module';
 import { UserModule } from './apiController/user/user.module';
 import { GroupModule } from './apiController/group/group.module';
 import { CoreModule } from './coreModule/core.module';
-import { NotificationGateway } from './socket/Notification';
 
 @Global()
 @Module({
@@ -22,10 +21,9 @@ import { NotificationGateway } from './socket/Notification';
     GroupModule,
     UserModule,
     GateModule,
-   
   ],
   controllers: [],
-  providers: [NotificationGateway],
+  providers: [],
 })
 export class AppModule {
 
