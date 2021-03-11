@@ -1,9 +1,9 @@
-import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Param } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Param, Put } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { UserDecodeToken } from 'src/dto/user.dto';
-import { CreateGroupDto } from 'src/dto/group.dto';
+import { CreateGroupDto, GroupDto } from 'src/dto/group.dto';
 
 
 @Controller("/group")
@@ -20,6 +20,10 @@ export class GroupController {
   }
   @Get(':id')
   async getOneGroup(@Param() param: any, @Headers('authorization') auth: string) {
+    return await this.groupService.getOneGroup(param?.id);
+  }
+   @Put(':id')
+  async eidtOneGroup(@Param() param: any,@Body() group: GroupDto, @Headers('authorization') auth: string) {
     return await this.groupService.getOneGroup(param?.id);
   }
   @Post()

@@ -5,7 +5,7 @@ import {Posts} from './post.dto'
 import {UserDecodeToken} from './user.dto'
 
 
-export class Group {
+export class GroupDto {
     _id:  string | Types.ObjectId;
     password: string
     name: string
