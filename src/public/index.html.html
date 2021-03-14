@@ -1,0 +1,8 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js" ></script>
+<script >
+	let socket = io('http://localhost:3000/meeting');
+	console.log(socket);
+	socket.emit('connected', data =>{
+		console.log(data)
+	})
+</script>

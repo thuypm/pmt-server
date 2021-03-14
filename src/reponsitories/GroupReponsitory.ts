@@ -4,6 +4,7 @@ import BaseRepository from "./BaseRepository";
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GroupDocument, Group } from "src/schema/group.schema";
+import { Message } from 'src/dto/message.dto';
 
 @Injectable()
 export default class GroupReponsitory extends BaseRepository<GroupDocument>{
@@ -16,5 +17,17 @@ export default class GroupReponsitory extends BaseRepository<GroupDocument>{
                 $in: list_ids
             }
         }).select({ name: 1, _id: 1, owner: 1 }).limit(20);
+    }
+    async pushNewMessage(roomId: string, message: Message) {
+        return await this.model.updateOne({ _id: Types.ObjectId(roomId.toString()) }, {
+            $push: {
+                listMessage: message
+            }
+        });
+    }
+    async getAllMessage(id: Types.ObjectId) {
+        return await this.model.findOne({
+            '_id': id
+        }).select({ listMessage: 1 })
     }
 }

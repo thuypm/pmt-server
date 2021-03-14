@@ -6,6 +6,7 @@ import GroupReponsitory from 'src/reponsitories/GroupReponsitory';
 import { CreateGroupDto } from 'src/dto/group.dto';
 import { Notice } from 'src/dto/notice.dto';
 import { NotificationGateway } from 'src/socket/Notification';
+import * as fs from 'fs'
 
 @Injectable()
 export class GroupService {
@@ -23,6 +24,11 @@ export class GroupService {
       aciton: "/all-group",
       content: group.owner.username + " đã tạo nhóm " + group.name
     }
+    await fs.mkdir('./public/group/' + group._id, function (err) {
+      if (err) {
+        return console.error(err);
+      }
+    })
     await this.userRepo.update({ _id: Types.ObjectId(group?.owner?._id.toString()), username: group?.owner?.username }, {
       $push: {
         group_ids: group._id,

@@ -18,7 +18,8 @@ export class GateController {
         return {
           status: HttpStatus.OK,
           data: {
-            accessToken: await this.authService.generateJWT(result)
+            accessToken: await this.authService.generateJWT(result),
+            username: user.username
           },
         }
       else
