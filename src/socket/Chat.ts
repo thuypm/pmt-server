@@ -28,15 +28,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayConnection, On
         // let token: string = client?.handshake?.query?.authorization.replace('Bearer ', '');
         // let user: UserDecodeToken = await this.authService.decodedToken(token);
         // client.join(user.username);
+        console.log("connected")
     }
     async handleDisconnect(client: Socket) {
-        console.log('disconneted')
+        // console.log('disconneted')
     }
     async afterInit(server: Socket) {
         // console.log(server);
     }
     @SubscribeMessage('join-room')
     public async handleJoinRoom(client: Socket, data: string): Promise<string> {
+        console.log(data);
         let group: GroupDto = await this.groupRepo.getAllMessage(Types.ObjectId(data));
         if (group) {
             client.join(data);
