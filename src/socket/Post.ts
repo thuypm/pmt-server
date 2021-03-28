@@ -18,7 +18,7 @@ import GroupReponsitory from "src/reponsitories/GroupReponsitory";
 
 @Injectable()
 @WebSocketGateway({ namespace: 'notification' })
-export class NotificationGateway implements OnGatewayConnection, OnGatewayConnection, OnGatewayDisconnect {
+export class PostGateway implements OnGatewayConnection, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     wss: Server;
 

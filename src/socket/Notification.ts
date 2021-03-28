@@ -24,7 +24,7 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayConnec
     async handleConnection(client: Socket, ...args: any[]) {
         let token: string = client?.handshake?.query?.authorization.replace('Bearer ', '');
         let user: UserDecodeToken = await this.authService.decodedToken(token);
-        client.join(user.username);
+        client.join(user?.username);
     }
     async handleDisconnect(client: Socket) {
         console.log('disconneted')

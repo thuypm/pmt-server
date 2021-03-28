@@ -30,4 +30,9 @@ export default class GroupReponsitory extends BaseRepository<GroupDocument>{
             '_id': id
         }).select({ listMessage: 1 })
     }
+    async getALlPost(id: Types.ObjectId) {
+        return await this.model.findOne({
+            '_id': id
+        }).select({ listPost: 1 })
+    }
 }
