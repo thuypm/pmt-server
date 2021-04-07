@@ -11,6 +11,7 @@ export class GroupDto {
     name: string
     members: Array<UserDecodeToken>;
     listPost: Array<Posts>;
+    owner: UserDecodeToken;
     listMessage: Array<Message>;
 
 }

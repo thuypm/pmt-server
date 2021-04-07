@@ -1,9 +1,10 @@
-import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Param, Put } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Request, Post, Req, Res, Get, UseGuards, Headers, Param, Put, HttpException } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { UserDecodeToken } from 'src/dto/user.dto';
 import { CreateGroupDto, GroupDto } from 'src/dto/group.dto';
+import { Types } from 'mongoose';
 
 
 @Controller("/group")
@@ -13,7 +14,7 @@ export class GroupController {
 
   }
   @Get()
-  async getAllGroup( @Headers('authorization') auth: string) {
+  async getAllGroup(@Headers('authorization') auth: string) {
     let token = auth.replace('Bearer ', '');
     const user: UserDecodeToken = await this.authService.decodedToken(token);
     return await this.groupService.getAllGroup(user);
@@ -22,10 +23,56 @@ export class GroupController {
   async getOneGroup(@Param() param: any, @Headers('authorization') auth: string) {
     return await this.groupService.getOneGroup(param?.id);
   }
-   @Put(':id')
-  async eidtOneGroup(@Param() param: any,@Body() group: GroupDto, @Headers('authorization') auth: string) {
-    return await this.groupService.getOneGroup(param?.id);
+  @Put('/join')
+  async joinGroup(@Body() body: any, @Headers('authorization') auth: string) {
+    let username = body?.username;
+    let groupCode: Types.ObjectId;
+
+    try {
+      groupCode = Types.ObjectId(body?.group_code.trim());
+      return await this.groupService.joinGroup({ username, groupCode });
+    }
+    catch (err) {
+      if (err.message && err.status) {
+        throw err;
+      }
+      else
+        throw new HttpException({
+          status: HttpStatus.BAD_REQUEST,
+          errors: [
+            {
+              label: 'Lỗi',
+              content: 'Username hoặc mã nhóm không tồn tại'
+            }
+          ],
+        }, HttpStatus.BAD_REQUEST)
+    }
+
   }
+  @Put(':id')
+  async eidtOneGroup(@Param() param: any, @Body() body: GroupDto, @Headers('authorization') auth: string) {
+    let groupCode: Types.ObjectId;
+    try {
+      groupCode = Types.ObjectId(body?._id.toString().trim());
+      return await this.groupService.updateGroup(groupCode, body);
+    }
+    catch (err) {
+      if (err.message && err.status) {
+        throw err;
+      }
+      else
+        throw new HttpException({
+          status: HttpStatus.BAD_REQUEST,
+          errors: [
+            {
+              label: 'Lỗi',
+              content: 'Username hoặc mã nhóm không tồn tại'
+            }
+          ],
+        }, HttpStatus.BAD_REQUEST)
+    }
+  }
+
   @Post()
   async createGroup(@Body() group: CreateGroupDto, @Headers('authorization') auth: string) {
     let token = auth.replace('Bearer ', '');

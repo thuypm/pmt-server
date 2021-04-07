@@ -1,6 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import * as fs from 'fs';
-import { v4 as uuid } from 'uuid';
 import {
     MessageBody,
     OnGatewayConnection,
@@ -15,55 +13,65 @@ import { AuthService } from "src/apiController/auth/auth.service";
 
 @Injectable()
 @WebSocketGateway({ namespace: 'meeting' })
-export class MeetingGateway implements OnGatewayConnection, OnGatewayConnection, OnGatewayDisconnect {
+export class MeetingGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     wss: Server;
 
     constructor(private readonly authService: AuthService) {
+
     }
     async handleConnection(client: Socket, ...args: any[]) {
+        // this.wss.on("disconectting", (client)=>{
+        //     console.log(client.server)
+        // })
     }
     async handleDisconnect(client: Socket) {
-        // console.log('disconneted')
+        this.wss.emit("disconnected", client.id);
     }
     async afterInit(server: Socket) {
-        // console.log(server);
     }
     @SubscribeMessage('join-room')
     public async handleJoinRoom(client: Socket, data: any): Promise<boolean> {
-        console.log(data[1]);
-        const roomId = data[0];
-        const username = data[1];
-        client.join(roomId);
-        this.wss.to(roomId).emit('new-client', {
-            socketId: client.id,
-            username: username
+        client.join(data?.roomId);
+        this.wss.to(data?.roomId).emit('new-client', {
+            clientId: client.id,
+            username: data?.username
         });
         return true
     }
     @SubscribeMessage('res-new-client')
-    public async handleSendMessage(client: Socket, dataSocket: any): Promise<string> {
-        console.log("re-render", client.id)
-        this.wss.to(dataSocket?.clientId).emit("offer-token", dataSocket);
-        return ''
-    }
-    @SubscribeMessage('answer-token')
-    public async handleSendAnswerToken(client: Socket, dataSocket: any): Promise<string> {
-        this.wss.to(dataSocket?.clientId).emit("answer-token", dataSocket);
-        return ''
-    }
-    @SubscribeMessage('res-token')
-    public async handleResToken(client: Socket, data: any): Promise<boolean> {
-        const clientId = data[0];
-        const token = data[1];
-        this.wss.to(clientId).emit('res-token', {
-            clientId: client.id,
-            token: token
+    public async handleResNewClient(client: Socket, data: any): Promise<boolean> {
+        this.wss.to(data?.socketId).emit('res-new-client', {
+            clientId: data?.clientId,
+            username: data?.username
         });
         return true
     }
-
-    // @Inject()
-    // private messageService
-
+    @SubscribeMessage('on-video')
+    public async handleOnvideo(client: Socket, data: any): Promise<boolean> {
+        this.wss.to(data?.clientId).emit('on-video', {
+            clientId: client.id,
+            socketId: data?.clientId,
+            token: data?.token,
+            username: data?.username
+        });
+        return true
+    }
+    @SubscribeMessage('off-video')
+    public async handleOffvideo(client: Socket, data: any): Promise<boolean> {
+        this.wss.to(data.roomId).emit('off-video', {
+            clientId: client.id,
+            username: data?.username
+        });
+        return true
+    }
+    @SubscribeMessage('res-on-video')
+    public async handleResOnvideo(client: Socket, data: any): Promise<boolean> {
+        this.wss.to(data?.socketId).emit('res-on-video', {
+            clientId: client?.id,
+            token: data?.token,
+            username: data?.username
+        });
+        return true
+    }
 }
