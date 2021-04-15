@@ -16,9 +16,11 @@ export default class BaseRepository<D extends BaseDocument>{
   async update( data :any , option:any ) {
     return await this.model.updateOne(data, option);
   }
-
+  async updateMany(data: any, option:any){
+    return await this.model.updateMany(data, option);
+  }
   async delete(option) {
-    return await this.model.remove(option);
+    return await this.model.deleteOne(option);
   }
 
   async findAll(condition) {

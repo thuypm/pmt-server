@@ -17,13 +17,7 @@ export class UserService {
     user._id = Types.ObjectId();
     return await this.userRepo.create(user);
   }
-  async pushNotification(username: string, notification: Notice) {
-    return await this.userRepo.update({ username: username }, {
-      $push: {
-        notices: notification
-      },
-    })
-  }
+
   async findUser(query: any) {
     return await this.userRepo.findAllLikely(query);
   }
