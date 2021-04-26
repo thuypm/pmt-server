@@ -79,7 +79,7 @@ export class GroupController {
     }
   }
   @Put(':id')
-  async eidtOneGroup(@Body() body: GroupDto, @Headers('authorization') auth: string) {
+  async editOneGroup(@Body() body: GroupDto, @Headers('authorization') auth: string) {
     let groupCode: Types.ObjectId;
     let createG: CreateGroupDto = {
       _id: "",

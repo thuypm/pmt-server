@@ -16,7 +16,7 @@ export default class GroupReponsitory extends BaseRepository<GroupDocument>{
             '_id': {
                 $in: list_ids
             }
-        }).select({ name: 1, _id: 1, owner: 1 }).limit(20);
+        }).select({ name: 1, _id: 1,description: 1, owner: 1, members: 1 }).limit(20);
     }
     async pushNewMessage(roomId: string, message: Message) {
         return await this.model.updateOne({ _id: Types.ObjectId(roomId.toString()) }, {

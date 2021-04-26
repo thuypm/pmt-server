@@ -34,6 +34,7 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayConnec
         // console.log(server);
     }
     async pushNotiToClient(rooms: Array<string>, noti: Notice) {
+        console.log(rooms);
         rooms.forEach(async room => {
             await this.notiService.pushNotification(room, noti);
             this.wss.to(room).emit("notification", noti);

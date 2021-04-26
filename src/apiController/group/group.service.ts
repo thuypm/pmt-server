@@ -234,7 +234,7 @@ export class GroupService {
         errors: [
           {
             label: 'Lỗi',
-            content: 'Bạn đã ở trong nhóm này'
+            content: 'Bạn không thể rời nhóm này'
           }
         ],
       }, HttpStatus.FORBIDDEN)

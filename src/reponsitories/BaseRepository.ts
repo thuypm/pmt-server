@@ -31,6 +31,10 @@ export default class BaseRepository<D extends BaseDocument>{
     return await this.model.findOne(option);
   }
 
+  async findOneWithReject(option, rejectObject) {
+    return await this.model.findOne(option, rejectObject);
+  }
+
   async getCountItems(option) {
     return await this.model.find().where(option).count();
   }

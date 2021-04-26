@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './apiController/auth/auth.module';
 import { NotificationModule } from './apiController/notification/notification.module';
 import { GateModule } from './apiController/gate/gate.module';
+import { ExerciseModule } from './apiController/exercise/exercise.module';
 import { UserModule } from './apiController/user/user.module';
 import { GroupModule } from './apiController/group/group.module';
 import { CoreModule } from './coreModule/core.module';
@@ -32,6 +33,7 @@ import { join } from 'path';
     GroupModule,
     UserModule,
     GateModule,
+    ExerciseModule,
     NotificationModule
   ],
   providers: [NotificationGateway, ChatGateway, MeetingGateway],
