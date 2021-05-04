@@ -5,8 +5,8 @@ export type BaseDocument = BaseModel & Document;
 
 @Schema()
 export class BaseModel {
-    @Prop()
-    _id: Types.ObjectId;
+  @Prop()
+  _id: Types.ObjectId;
 }
 
 // export BaseModel;

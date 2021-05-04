@@ -1,4 +1,4 @@
-export class FileDto{
-    name: string;
-    path: string;
+export class FileDto {
+  name: string;
+  path: string;
 }

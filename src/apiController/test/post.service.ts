@@ -8,18 +8,19 @@ import { Notice } from 'src/dto/notice.dto';
 import { NotificationGateway } from 'src/socket/Notification';
 import * as fs from 'fs';
 import { CreateExerciseDto, ExerciseDto } from 'src/dto/exercise.dto';
-import ExerciseRepository from 'src/reponsitories/ExerciseRepository';
+import PostRepository from 'src/reponsitories/PostRepository';
 import BaseRepository from 'src/reponsitories/BaseRepository';
 import { v4 as uuid } from 'uuid';
 import { SubmitDto } from 'src/dto/submit.dto';
 import * as path from 'path';
+import { PostDto } from 'src/dto/post.dto';
+import { PostGateway } from 'src/socket/Post';
 
 @Injectable()
-export class ExerciseService {
+export class PostService {
   constructor(
-    private exerciseRepo: ExerciseRepository,
+    private postRepo: PostRepository,
     private groupRepo: GroupReponsitory,
-    private userRepo: UserRepository,
     private noti: NotificationGateway,
   ) {}
 
@@ -66,18 +67,21 @@ export class ExerciseService {
     }
   }
 
-  async createExercise(exercise: CreateExerciseDto) {
+  async createPost(postCreate: PostDto, file: Express.Multer.File) {
     let groupFind: GroupDto;
     try {
       groupFind = await this.checkForbidden(
-        exercise?.group_id?.toString(),
+        postCreate?.group_id?.toString(),
         this.groupRepo,
         null,
       );
     } catch (error) {
       throw error;
     }
-    if (groupFind?.owner?.username !== exercise?.owner?.username) {
+    if (
+      groupFind?.owner?.username !== postCreate?.owner?.username &&
+      !groupFind?.members?.find((e) => e.username === postCreate.owner.username)
+    ) {
       throw new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
@@ -91,36 +95,31 @@ export class ExerciseService {
         HttpStatus.FORBIDDEN,
       );
     } else {
-      exercise._id = Types.ObjectId();
-      exercise.group_id = groupFind._id;
-      await this.exerciseRepo.create(exercise);
+      postCreate._id = Types.ObjectId();
+      postCreate.group_id = groupFind._id;
+      if (file) {
+        (postCreate.filePath = file.originalname),
+          (postCreate.file_type = path.extname(file.originalname));
+      }
+      await this.postRepo.create(postCreate);
       let noti: Notice = new Notice();
       noti = {
         id: null,
-        title: 'Bài tập mới',
+        title: 'Bài viết mới',
         status: false,
         time: new Date().getTime(),
         action: '/group-exercise',
-        content: exercise.owner.username + ' đã tạo bài tập ' + exercise.name,
+        content:
+          postCreate.owner.username + ' đã đăng trong nhóm ' + groupFind.name,
       };
-
-      await fs.mkdir('./public/exercise/' + exercise._id, function (err) {
-        if (err) {
-          return console.error(err);
-        }
-      });
+      // this.postGateway.newPost(groupFind._id.toString(), postCreate);
       groupFind.members.forEach(async (e) => {
-        // await this.userRepo.update({ _id: Types.ObjectId(e._id.toString()), username: e.username }, {
-        //   $push: {
-        //     exercise_ids: exercise._id,
-        //   },
-        // })
         this.noti.pushNotiToClient([e.username], noti);
       });
       return {};
     }
   }
-  async getAllExercise(group_id: string, user: UserDecodeToken) {
+  async getAllPost(group_id: string, user: UserDecodeToken) {
     let groupFind: GroupDto;
     try {
       groupFind = await this.checkForbidden(group_id, this.groupRepo, null);
@@ -128,9 +127,7 @@ export class ExerciseService {
         groupFind?.owner?.username === user.username ||
         groupFind?.members?.find((e) => e.username === user.username)
       ) {
-        return await this.exerciseRepo.getAllExerciseShow({
-          group_id: groupFind._id,
-        });
+        return this.postRepo.findAll({ group_id: groupFind._id });
       } else
         throw new HttpException(
           {
@@ -151,7 +148,7 @@ export class ExerciseService {
   async getOneExercise(id: string, user: UserDecodeToken) {
     let exerciseFind: ExerciseDto;
     try {
-      exerciseFind = await this.checkForbidden(id, this.exerciseRepo, null);
+      exerciseFind = await this.checkForbidden(id, this.postRepo, null);
       if (exerciseFind) {
         const groupFind: GroupDto = await this.groupRepo.findOne({
           _id: exerciseFind.group_id,
@@ -192,7 +189,7 @@ export class ExerciseService {
   async updateExercise(id: string, exerciseEdit: ExerciseDto) {
     let exerciseFind: ExerciseDto;
     try {
-      exerciseFind = await this.checkForbidden(id, this.exerciseRepo, null);
+      exerciseFind = await this.checkForbidden(id, this.postRepo, null);
     } catch (error) {
       throw error;
     }
@@ -210,7 +207,7 @@ export class ExerciseService {
         HttpStatus.FORBIDDEN,
       );
     }
-    return await this.exerciseRepo.update(
+    return await this.postRepo.update(
       { _id: exerciseFind._id },
       {
         name: exerciseEdit.name,
@@ -228,7 +225,7 @@ export class ExerciseService {
     try {
       exerciseFind = await this.checkForbidden(
         exercise_id,
-        this.exerciseRepo,
+        this.postRepo,
         null,
       );
       const pathFile =
@@ -247,7 +244,7 @@ export class ExerciseService {
         point: null,
         evaluate: '',
       };
-      return await this.exerciseRepo.update(
+      return await this.postRepo.update(
         { _id: exerciseFind._id },
         {
           $push: {
@@ -262,7 +259,7 @@ export class ExerciseService {
   async evaluateExercise(id: string, user: UserDecodeToken, evaluateData: any) {
     let exerciseFind: ExerciseDto;
     try {
-      exerciseFind = await this.checkForbidden(id, this.exerciseRepo, null);
+      exerciseFind = await this.checkForbidden(id, this.postRepo, null);
     } catch (error) {
       throw error;
     }
@@ -280,7 +277,7 @@ export class ExerciseService {
         HttpStatus.FORBIDDEN,
       );
     }
-    return await this.exerciseRepo.update(
+    return await this.postRepo.update(
       { _id: exerciseFind._id, 'list_submit._id': evaluateData?._id },
       {
         $set: {
@@ -293,7 +290,7 @@ export class ExerciseService {
   async deleteExercise(id: string, user: UserDecodeToken) {
     let exerciseFind: ExerciseDto;
     try {
-      exerciseFind = await this.checkForbidden(id, this.exerciseRepo, null);
+      exerciseFind = await this.checkForbidden(id, this.postRepo, null);
     } catch (error) {
       throw error;
     }
@@ -311,7 +308,7 @@ export class ExerciseService {
         HttpStatus.FORBIDDEN,
       );
     }
-    await this.exerciseRepo.delete({ _id: exerciseFind._id });
+    await this.postRepo.delete({ _id: exerciseFind._id });
     await fs.rmdirSync('./public/exercise/' + exerciseFind._id);
     return {};
   }

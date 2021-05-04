@@ -1,8 +1,8 @@
 export class Notice {
-    id: string;
-    title: string;
-    status: Boolean;
-    content: string;
-    time: number;
-    action: string;
+  id: string;
+  title: string;
+  status: boolean;
+  content: string;
+  time: number;
+  action: string;
 }

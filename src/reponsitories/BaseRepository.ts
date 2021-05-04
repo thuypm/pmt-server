@@ -1,10 +1,10 @@
-import { BaseDocument, BaseModel } from "../schema/base.schema";
+import { BaseDocument, BaseModel } from '../schema/base.schema';
 import { Model, Schema, Types } from 'mongoose';
-import { UserDocument, UserSchema } from "../schema/user.schema"
+import { UserDocument, UserSchema } from '../schema/user.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-export default class BaseRepository<D extends BaseDocument>{
+export default class BaseRepository<D extends BaseDocument> {
   protected model: Model<D>;
   constructor(model: Model<D>) {
     this.model = model;
@@ -12,11 +12,11 @@ export default class BaseRepository<D extends BaseDocument>{
   async create(data: any) {
     return await this.model.create(data);
   }
-  
-  async update( data :any , option:any ) {
+
+  async update(data: any, option: any) {
     return await this.model.updateOne(data, option);
   }
-  async updateMany(data: any, option:any){
+  async updateMany(data: any, option: any) {
     return await this.model.updateMany(data, option);
   }
   async delete(option) {

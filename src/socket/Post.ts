@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from '@nestjs/common';
 import {
     MessageBody,
     OnGatewayConnection,
@@ -6,59 +6,105 @@ import {
     OnGatewayInit,
     SubscribeMessage,
     WebSocketGateway,
-    WebSocketServer
-} from "@nestjs/websockets";
-import { Types } from "mongoose";
-import { Server, Socket, Client } from "socket.io";
-import { AuthService } from "src/apiController/auth/auth.service";
-import { GroupDto } from "src/dto/group.dto";
-import { Notice } from "src/dto/notice.dto";
-import { UserDecodeToken } from "src/dto/user.dto";
-import GroupReponsitory from "src/reponsitories/GroupReponsitory";
+    WebSocketServer,
+} from '@nestjs/websockets';
+import * as fs from 'fs'
+import { v4 as uuid } from 'uuid';
+import { Server, Socket, Client } from 'socket.io';
+import { AuthService } from 'src/apiController/auth/auth.service';
+import { PostService } from 'src/apiController/post/post.service';
+import { PostDto } from 'src/dto/post.dto';
+import { UserDecodeToken } from 'src/dto/user.dto';
 
+@WebSocketGateway({ namespace: 'post' })
 @Injectable()
-@WebSocketGateway({ namespace: 'notification' })
-export class PostGateway implements OnGatewayConnection, OnGatewayConnection, OnGatewayDisconnect {
+export class PostGateway
+    implements OnGatewayConnection, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     wss: Server;
 
-    constructor(private readonly authService: AuthService, private readonly groupRepo: GroupReponsitory) {
-    }
+    constructor(
+        private readonly postService: PostService,
+        private readonly authService: AuthService
+
+    ) { }
     async handleConnection(client: Socket, ...args: any[]) {
-        let token: string = client?.handshake?.query?.authorization.replace('Bearer ', '');
-        let user: UserDecodeToken = await this.authService.decodedToken(token);
-        client.join(user.username);
+        const token: string = client?.handshake?.query?.authorization?.replace(
+            'Bearer ',
+            '',
+        );
+        const user: UserDecodeToken = await this.authService.decodedToken(token);
+        if (!user) client.emit('have-error');
     }
     async handleDisconnect(client: Socket) {
-        console.log('disconneted')
+        console.log('disconneted');
     }
     async afterInit(server: Socket) {
         // console.log(server);
     }
     @SubscribeMessage('join-room')
-    public async handleJoinRoom(client: Socket, data: string): Promise<string> {
-        client.join(data);
-        let group: GroupDto = await this.groupRepo.findOne({ _id: Types.ObjectId(data) });
-        if (group) {
-            client.emit('load-group-data', group);
+    public async handleJoinRoom(client: Socket, group_id: string): Promise<any> {
+        let token: string = client?.handshake?.query?.authorization?.replace('Bearer ', '');
+        let user: UserDecodeToken = await this.authService.decodedToken(token);
+
+        let list_post: Array<PostDto>;
+        try {
+            list_post = await this.postService.getAllPost(group_id, user);
+            client.join(group_id);
+            client.emit("get-all-post", list_post);
+        } catch (error) {
+            client.emit("have-error")
         }
-        return data
+        return "list_post";
     }
-    @SubscribeMessage('send-message')
-    public async handleSendMessage(client: Socket, data: any): Promise<string> {
-        client.join(data?.room);
-        await this.groupRepo.update({ _id: Types.ObjectId(data)}, {
-            $push:{
-                listMesssage: data?.message
+    public async newPost(room: string, postContent: PostDto) {
+        this.wss.to(room).emit("new-post", postContent);
+    }
+    @SubscribeMessage('create-post')
+    public async handleCreatePost(client: Socket, dataSocket: any): Promise<any> {
+        let token: string = client?.handshake?.query?.authorization?.replace('Bearer ', '');
+        let user: UserDecodeToken = await this.authService.decodedToken(token);
+        const group_id = dataSocket?.group_id;
+        const content = dataSocket?.content;
+        const file = dataSocket?.file;
+        if (file) {
+            const fileContent = file.content;
+            const extension = fileContent.split(';')[0].split('/')[1];
+            const type = fileContent.split(';')[0].split('/')[0];
+            const vtHead = fileContent.indexOf(',');
+            const data = fileContent.slice(vtHead + 1, fileContent.length);
+            const fileName = uuid() + '.' + extension;
+            await fs.writeFileSync(
+                './public/group/' + group_id + '/' + fileName,
+                data,
+                { encoding: 'base64' }
+            );
+
+            if (user) {
+                let post: PostDto = {
+                    _id: null,
+                    content: content,
+                    filePath: 'group/' + group_id + '/' + fileName,
+                    file_name: file?.name,
+                    file_type: type,
+                    owner: user,
+                    group_id: group_id,
+                    list_comment: [],
+                    time: new Date().getTime()
+                };
+                await this.postService.createPost(post);
+                this.wss.to(dataSocket?.group_id).emit("new-post", post);
+                return "list_post";
             }
-        });
+            else
+                return null
 
-        // if (group) {
-        //     client.emit('load-group-data', group);
-        // }
-        return data
+        }
     }
-    // @Inject()
-    // private messageService
-
+    @SubscribeMessage('post-comment')
+    public async handlePostComment(client: Socket, data: string): Promise<any> {
+        // let list_post: Array<PostDto> = await this.postRepo.findAll({ group_id: Types.ObjectId(group_id) });
+        // client.emit("get-all-post", list_post);
+        // return "list_post";
+    }
 }

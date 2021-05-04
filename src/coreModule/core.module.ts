@@ -13,11 +13,11 @@ import { NotificationGateway } from 'src/socket/Notification';
     JwtModule.registerAsync({
       useFactory: async () => ({
         secret: process.env.JWTKEY,
-        signOptions: { expiresIn: process.env.TOKEN_EXPIRATION }
-      })
+        signOptions: { expiresIn: process.env.TOKEN_EXPIRATION },
+      }),
     }),
   ],
   providers: [AuthService],
-  exports: [JwtModule]
+  exports: [JwtModule],
 })
-export class CoreModule { }
+export class CoreModule {}
