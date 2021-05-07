@@ -28,7 +28,7 @@ export class ChatGateway
   constructor(
     private readonly authService: AuthService,
     private readonly groupRepo: GroupReponsitory,
-  ) {}
+  ) { }
   async handleConnection(client: Socket, ...args: any[]) {
     // let token: string = client?.handshake?.query?.authorization.replace('Bearer ', '');
     // let user: UserDecodeToken = await this.authService.decodedToken(token);
@@ -46,8 +46,10 @@ export class ChatGateway
     const group: GroupDto = await this.groupRepo.getAllMessage(
       Types.ObjectId(data),
     );
+    console.log(data);
     if (group) {
       client.join(data);
+      client.emit("load-all-user", [group.owner, ...group.members])
       client.emit('load-all-message', group.listMessage);
     } else {
       client.emit('not-found', 'Room not found');

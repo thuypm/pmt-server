@@ -15,6 +15,7 @@ import { AuthService } from 'src/apiController/auth/auth.service';
 import { PostService } from 'src/apiController/post/post.service';
 import { PostDto } from 'src/dto/post.dto';
 import { UserDecodeToken } from 'src/dto/user.dto';
+import { CommentDto } from 'src/dto/comment.dto';
 
 @WebSocketGateway({ namespace: 'post' })
 @Injectable()
@@ -67,44 +68,55 @@ export class PostGateway
         const group_id = dataSocket?.group_id;
         const content = dataSocket?.content;
         const file = dataSocket?.file;
+        let fileName: string;
+        let type: string;
         if (file) {
             const fileContent = file.content;
             const extension = fileContent.split(';')[0].split('/')[1];
-            const type = fileContent.split(';')[0].split('/')[0];
+            type = fileContent.split(';')[0].split('/')[0];
             const vtHead = fileContent.indexOf(',');
             const data = fileContent.slice(vtHead + 1, fileContent.length);
-            const fileName = uuid() + '.' + extension;
+            fileName = uuid() + '.' + extension;
             await fs.writeFileSync(
                 './public/group/' + group_id + '/' + fileName,
                 data,
                 { encoding: 'base64' }
             );
-
-            if (user) {
-                let post: PostDto = {
-                    _id: null,
-                    content: content,
-                    filePath: 'group/' + group_id + '/' + fileName,
-                    file_name: file?.name,
-                    file_type: type,
-                    owner: user,
-                    group_id: group_id,
-                    list_comment: [],
-                    time: new Date().getTime()
-                };
-                await this.postService.createPost(post);
-                this.wss.to(dataSocket?.group_id).emit("new-post", post);
-                return "list_post";
-            }
-            else
-                return null
-
         }
+        if (user) {
+            let post: PostDto = {
+                _id: null,
+                content: content,
+                filePath: file? ('group/' + group_id + '/' + fileName ): '',
+                file_name: file?.name,
+                file_type: type,
+                owner: user,
+                group_id: group_id,
+                list_comment: [],
+                time: new Date().getTime()
+            };
+            await this.postService.createPost(post);
+            this.wss.to(dataSocket?.group_id).emit("new-post", post);
+            return "list_post";
+        }
+        else
+            return null
+
     }
     @SubscribeMessage('post-comment')
-    public async handlePostComment(client: Socket, data: string): Promise<any> {
-        // let list_post: Array<PostDto> = await this.postRepo.findAll({ group_id: Types.ObjectId(group_id) });
-        // client.emit("get-all-post", list_post);
-        // return "list_post";
+    public async handlePostComment(client: Socket, data: any): Promise<any> {
+        let token: string = client?.handshake?.query?.authorization?.replace('Bearer ', '');
+        let user: UserDecodeToken = await this.authService.decodedToken(token);
+        let cmt: CommentDto = {
+            _id: uuid(),
+            username: user?.username,
+            content: data?.comment,
+            time: new Date().getTime()
+        }
+        await this.postService.commentPost(data?.post_id, cmt);
+        this.wss.to(data.group_id).emit("new-comment", {
+            post_id: data?.post_id,
+            cmt: cmt
+        })
     }
 }

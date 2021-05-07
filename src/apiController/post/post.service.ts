@@ -11,6 +11,7 @@ import BaseRepository from 'src/reponsitories/BaseRepository';
 import { v4 as uuid } from 'uuid'
 import * as path from 'path'
 import { PostDto } from 'src/dto/post.dto';
+import { CommentDto } from 'src/dto/comment.dto';
 // import { PostGateway } from 'src/socket/Post';
 
 @Injectable()
@@ -88,13 +89,16 @@ export class PostService {
         title: "Bài viết mới",
         status: false,
         time: new Date().getTime(),
-        action: "/group-exercise",
+        action: "/all-group",
         content: postCreate.owner.username + " đã đăng trong nhóm " + groupFind.name
       }
       groupFind.members.forEach(async e => {
         if (e.username !== postCreate.owner?.username)
           this.noti.pushNotiToClient([e.username], noti);
       })
+      if (groupFind.owner.username !== postCreate.owner.username) {
+        this.noti.pushNotiToClient([groupFind.owner.username], noti)
+      }
       return {}
     }
 
@@ -120,6 +124,13 @@ export class PostService {
     } catch (error) {
       throw error
     }
+  }
+  async commentPost(post_id: string, comment: CommentDto) {
+    return await this.postRepo.update({ _id: Types.ObjectId(post_id) }, {
+      $push: {
+        list_comment: comment
+      }
+    })
   }
   // async getOneExercise(id: string, user: UserDecodeToken) {
   //   let exerciseFind: ExerciseDto;
