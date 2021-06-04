@@ -19,7 +19,6 @@ export class ExerciseService {
   constructor(
     private exerciseRepo: ExerciseRepository,
     private groupRepo: GroupReponsitory,
-    private userRepo: UserRepository,
     private noti: NotificationGateway,
   ) {}
 

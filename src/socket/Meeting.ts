@@ -18,7 +18,7 @@ export class MeetingGateway
   @WebSocketServer()
   wss: Server;
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
   async handleConnection(client: Socket, ...args: any[]) {
     // this.wss.on("disconectting", (client)=>{
     //     console.log(client.server)
@@ -27,7 +27,7 @@ export class MeetingGateway
   async handleDisconnect(client: Socket) {
     this.wss.emit('disconnected', client.id);
   }
-  async afterInit(server: Socket) {}
+  async afterInit(server: Socket) { }
   @SubscribeMessage('join-room')
   public async handleJoinRoom(client: Socket, data: any): Promise<boolean> {
     client.join(data?.roomId);
@@ -35,6 +35,16 @@ export class MeetingGateway
       clientId: client.id,
       username: data?.username,
     });
+    return true;
+  }
+  @SubscribeMessage('share-screen')
+  public async handleShareScreen(client: Socket, data: any): Promise<boolean> {
+    this.wss.to(data?.group_id).emit('start-share-screen', data?.data);
+    return true;
+  }
+  @SubscribeMessage('stop-share-creen')
+  public async handleStopShareScreen(client: Socket, data: any): Promise<boolean> {
+    this.wss.to(data?.group_id).emit('stop-share-screen');
     return true;
   }
   @SubscribeMessage('res-new-client')

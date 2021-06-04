@@ -55,15 +55,6 @@ export class NotificationGateway
     const user: UserDecodeToken = await this.authService.decodedToken(token);
     await this.notiService.handleReadNotice(user, data);
   }
-  @SubscribeMessage('read-notice')
-  public async handleGetStatusNotice(client: Socket, data: any) {
-    const token: string = client?.handshake?.query?.authorization.replace(
-      'Bearer ',
-      '',
-    );
-    const user: UserDecodeToken = await this.authService.decodedToken(token);
-    await this.notiService.handleReadNotice(user, data);
-  }
   @SubscribeMessage('read-all-notice')
   public async handleReadAllNotice(client: Socket, data: any) {
     const token: string = client?.handshake?.query?.authorization.replace(

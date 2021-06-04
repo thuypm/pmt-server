@@ -1,8 +1,5 @@
 import { BaseDocument, BaseModel } from '../schema/base.schema';
 import { Model, Schema, Types } from 'mongoose';
-import { UserDocument, UserSchema } from '../schema/user.schema';
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 
 export default class BaseRepository<D extends BaseDocument> {
   protected model: Model<D>;
