@@ -78,7 +78,7 @@ export class ExerciseService {
     }
     if (groupFind?.owner?.username !== exercise?.owner?.username) {
       throw new HttpException(
-        {
+        { 
           status: HttpStatus.FORBIDDEN,
           errors: [
             {
